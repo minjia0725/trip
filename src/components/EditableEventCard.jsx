@@ -1,5 +1,12 @@
 import { useState, useEffect, memo } from 'react';
 import { Clock, ExternalLink, Trash2, Plus, Link as LinkIcon } from 'lucide-react';
+
+const TAG_OPTIONS = [
+  { value: '', label: '無' },
+  { value: 'optional', label: '選做' },
+  { value: 'confirmed', label: '已預訂' },
+  { value: 'tbc', label: '待確認' },
+];
 import { formatTime } from '../utils/dateTime';
 import LinkPreview from './LinkPreview';
 
@@ -128,6 +135,53 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
       onUpdate({ ...event, time: formatted });
     }
   };
+
+  // 瀏覽模式：精簡一覽，小螢幕改為上下排列、時間不換行
+  if (!isEditMode) {
+    const activityText = event.activity || (event.activities && event.activities.filter(Boolean).join('\n')) || '—';
+    const hasCost = (event.cost_jpy && String(event.cost_jpy).trim()) || (event.cost_twd && String(event.cost_twd).trim());
+    const tagValue = event.tag || '';
+    const tagLabel = TAG_OPTIONS.find(o => o.value === tagValue)?.label || '';
+    const tagClass = {
+      optional: 'bg-gray-100 text-gray-600',
+      confirmed: 'bg-emerald-100 text-emerald-700',
+      tbc: 'bg-amber-100 text-amber-700',
+    }[tagValue] || '';
+    return (
+      <div className="group bg-white rounded-xl border border-gray-100 shadow-sm py-2.5 px-3 sm:py-3 sm:px-4 hover:border-blue-100 hover:shadow transition-colors">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4 sm:items-baseline">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <span className="text-xs sm:text-sm font-semibold text-blue-600 tabular-nums whitespace-nowrap">
+              {event.time || '—'}
+            </span>
+            {tagLabel && (
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium ${tagClass}`}>
+                {tagLabel}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-gray-900 font-medium whitespace-pre-line leading-snug text-sm sm:text-base">{activityText}</div>
+            {hasCost && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
+                {event.cost_jpy && String(event.cost_jpy).trim() && (
+                  <span>¥{String(event.cost_jpy).trim()}</span>
+                )}
+                {event.cost_twd && String(event.cost_twd).trim() && (
+                  <span>${String(event.cost_twd).trim()}</span>
+                )}
+              </div>
+            )}
+            {event.link && (
+              <div className="mt-1.5 sm:mt-2">
+                <LinkPreview url={event.link} size="compact" />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`group bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-white/50 p-4 relative ${isEditMode ? 'pl-10' : 'pl-4'}`}>
@@ -350,6 +404,19 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="pt-2 border-t border-gray-100 mt-2">
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">標註</label>
+          <select
+            value={event.tag || ''}
+            onChange={(e) => handleChange('tag', e.target.value)}
+            className="w-full max-w-[140px] px-3 py-1.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none cursor-pointer"
+          >
+            {TAG_OPTIONS.map((opt) => (
+              <option key={opt.value || 'none'} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
 
         <div className="pt-2 border-t border-gray-100 mt-1">

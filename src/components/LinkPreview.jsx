@@ -4,7 +4,8 @@ import { ExternalLink, Image as ImageIcon } from 'lucide-react';
 // 預覽緩存（避免重複請求）
 const previewCache = new Map();
 
-const LinkPreview = memo(({ url, title }) => {
+const LinkPreview = memo(({ url, title, size = 'default' }) => {
+  const isCompact = size === 'compact';
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -120,9 +121,9 @@ const LinkPreview = memo(({ url, title }) => {
 
   if (loading) {
     return (
-      <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+      <div className={`border border-gray-200 rounded-lg bg-gray-50 animate-pulse ${isCompact ? 'p-2' : 'p-3'}`}>
+        <div className={`bg-gray-200 rounded ${isCompact ? 'h-3 w-2/3 mb-1.5' : 'h-4 w-3/4 mb-2'}`}></div>
+        <div className={`bg-gray-200 rounded ${isCompact ? 'h-2.5 w-1/2' : 'h-3 w-1/2'}`}></div>
       </div>
     );
   }
@@ -133,10 +134,10 @@ const LinkPreview = memo(({ url, title }) => {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+        className={`flex items-center gap-1.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors ${isCompact ? 'p-1.5' : 'p-2'}`}
       >
-        <ExternalLink size={14} className="text-gray-400 flex-shrink-0" />
-        <span className="text-blue-600 hover:text-blue-800 text-sm flex-1 hover:underline truncate">
+        <ExternalLink size={isCompact ? 12 : 14} className="text-gray-400 flex-shrink-0" />
+        <span className={`text-blue-600 hover:text-blue-800 flex-1 hover:underline truncate ${isCompact ? 'text-xs' : 'text-sm'}`}>
           {title || url}
         </span>
       </a>
@@ -157,9 +158,9 @@ const LinkPreview = memo(({ url, title }) => {
           dangerouslySetInnerHTML={{ __html: preview.html }}
         />
       ) : (
-        <div className="flex gap-3 p-3">
+        <div className={`flex overflow-hidden ${isCompact ? 'gap-2 p-2' : 'gap-3 p-3'}`}>
           {preview.image && (
-            <div className="flex-shrink-0 w-24 h-24 bg-gray-100 rounded overflow-hidden">
+            <div className={`flex-shrink-0 bg-gray-100 rounded overflow-hidden ${isCompact ? 'w-14 h-14' : 'w-24 h-24'}`}>
               <img
                 src={preview.image}
                 alt={preview.title}
@@ -171,29 +172,29 @@ const LinkPreview = memo(({ url, title }) => {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-2 mb-1">
+            <div className={`flex items-start gap-1.5 ${isCompact ? 'mb-0.5' : 'mb-1'}`}>
               {preview.type === 'basic' && preview.image && (
                 <img
                   src={preview.image}
                   alt=""
-                  className="w-4 h-4 flex-shrink-0 mt-0.5"
+                  className={`flex-shrink-0 mt-0.5 ${isCompact ? 'w-3 h-3' : 'w-4 h-4'}`}
                   onError={(e) => {
                     e.target.style.display = 'none';
                   }}
                 />
               )}
-              <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+              <h4 className={`font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors ${isCompact ? 'text-xs' : 'text-sm'}`}>
                 {preview.title}
               </h4>
             </div>
             {preview.description && (
-              <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+              <p className={`text-gray-500 line-clamp-2 ${isCompact ? 'text-[10px] mt-0.5' : 'text-xs mt-1'}`}>
                 {preview.description}
               </p>
             )}
-            <div className="flex items-center gap-1 mt-2">
-              <ExternalLink size={12} className="text-gray-400" />
-              <span className="text-xs text-gray-400 truncate">
+            <div className={`flex items-center gap-1 ${isCompact ? 'mt-1' : 'mt-2'}`}>
+              <ExternalLink size={isCompact ? 10 : 12} className="text-gray-400" />
+              <span className={`text-gray-400 truncate ${isCompact ? 'text-[10px]' : 'text-xs'}`}>
                 {new URL(url).hostname.replace('www.', '')}
               </span>
             </div>

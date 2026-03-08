@@ -63,13 +63,21 @@ function TripDetail() {
     loadData();
   }, [tripId, navigate, useDb]);
 
-  // 當行程載入後，默認展開第一天
+  // 當行程載入後：瀏覽模式預設展開「所有天」方便一眼看清；編輯模式只展開第一天
   useEffect(() => {
-    if (itinerary.length > 0 && !isLoading && !hasInitialized.current) {
-      setActiveDayIndex(new Set([0]));
+    if (itinerary.length === 0 || isLoading) return;
+    if (!hasInitialized.current) {
       hasInitialized.current = true;
+      setActiveDayIndex(isEditMode ? new Set([0]) : new Set(itinerary.map((_, i) => i)));
     }
   }, [itinerary.length, isLoading]);
+
+  // 切換到瀏覽模式時，展開所有天
+  useEffect(() => {
+    if (!isEditMode && itinerary.length > 0) {
+      setActiveDayIndex(new Set(itinerary.map((_, i) => i)));
+    }
+  }, [isEditMode, itinerary.length]);
 
   // Save data：登入時寫入 DB（防抖），未登入時寫入 localStorage
   useEffect(() => {

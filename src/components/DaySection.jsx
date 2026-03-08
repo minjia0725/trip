@@ -52,7 +52,8 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
       activity: "",
       cost_twd: "",
       cost_jpy: "",
-      link: ""
+      link: "",
+      tag: ""
     };
     onUpdateDay({ ...day, events: [...day.events, newEvent] });
   };
@@ -104,30 +105,30 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
                 <Trash2 size={20} />
               </button>
             )}
-            <button
-              onClick={onClick}
-              className="p-2 hover:bg-white/20 rounded-full opacity-80 hover:opacity-100 text-white/90 hover:text-white touch-manipulation cursor-pointer"
-              type="button"
-              aria-label={isActive ? "收起" : "展開"}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <ChevronDown
-                size={24}
-                className={`transition-transform duration-150 ease-in-out transform ${isActive ? 'rotate-0' : '-rotate-90'}`}
-                style={{ transformOrigin: 'center' }}
-              />
-            </button>
+            {isEditMode && (
+              <button
+                onClick={onClick}
+                className="p-2 hover:bg-white/20 rounded-full opacity-80 hover:opacity-100 text-white/90 hover:text-white touch-manipulation cursor-pointer"
+                type="button"
+                aria-label={isActive ? "收起" : "展開"}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <ChevronDown
+                  size={24}
+                  className={`transition-transform duration-150 ease-in-out transform ${isActive ? 'rotate-0' : '-rotate-90'}`}
+                  style={{ transformOrigin: 'center' }}
+                />
+              </button>
+            )}
           </div>
         </div>
 
         <div
           className={`overflow-hidden transition-all duration-150 ease-in-out ${
-            isActive
-              ? 'max-h-[10000px] opacity-100'
-              : 'max-h-0 opacity-0'
+            !isEditMode ? 'max-h-[10000px] opacity-100' : isActive ? 'max-h-[10000px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="p-4 md:p-6 space-y-4 bg-gray-50/50">
+          <div className={`p-4 md:p-6 bg-gray-50/50 ${isEditMode ? 'space-y-4' : 'space-y-2'}`}>
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
