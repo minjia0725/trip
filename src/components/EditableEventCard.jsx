@@ -136,29 +136,32 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
     }
   };
 
-  // 瀏覽模式：精簡一覽，小螢幕改為上下排列、時間不換行
+  // 瀏覽模式：精簡一覽，標註在右上角、有標註時牌卡底色變化
   if (!isEditMode) {
     const activityText = event.activity || (event.activities && event.activities.filter(Boolean).join('\n')) || '—';
     const hasCost = (event.cost_jpy && String(event.cost_jpy).trim()) || (event.cost_twd && String(event.cost_twd).trim());
     const tagValue = event.tag || '';
     const tagLabel = TAG_OPTIONS.find(o => o.value === tagValue)?.label || '';
-    const tagClass = {
-      optional: 'bg-gray-100 text-gray-600',
-      confirmed: 'bg-emerald-100 text-emerald-700',
-      tbc: 'bg-amber-100 text-amber-700',
+    const tagBadgeClass = {
+      optional: 'bg-gray-500 text-white',
+      confirmed: 'bg-emerald-600 text-white',
+      tbc: 'bg-amber-500 text-white',
     }[tagValue] || '';
+    const cardBgClass = {
+      optional: 'bg-gray-50/90 border-gray-200 hover:border-gray-300',
+      confirmed: 'bg-emerald-50/90 border-emerald-200 hover:border-emerald-300',
+      tbc: 'bg-amber-50/90 border-amber-200 hover:border-amber-300',
+    }[tagValue] || 'bg-white border-gray-100 hover:border-blue-100';
     return (
-      <div className="group bg-white rounded-xl border border-gray-100 shadow-sm py-2.5 px-3 sm:py-3 sm:px-4 hover:border-blue-100 hover:shadow transition-colors">
-        <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4 sm:items-baseline">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            <span className="text-xs sm:text-sm font-semibold text-blue-600 tabular-nums whitespace-nowrap">
-              {event.time || '—'}
-            </span>
-            {tagLabel && (
-              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium ${tagClass}`}>
-                {tagLabel}
-              </span>
-            )}
+      <div className={`group relative rounded-xl border shadow-sm py-2.5 px-3 sm:py-3 sm:px-4 hover:shadow transition-colors ${cardBgClass}`}>
+        {tagValue && (
+          <span className={`absolute top-2 right-2 sm:top-2.5 sm:right-3 inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold shadow-sm ${tagBadgeClass}`}>
+            {tagLabel}
+          </span>
+        )}
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4 sm:items-baseline pr-16 sm:pr-20">
+          <div className="flex-shrink-0 text-xs sm:text-sm font-semibold text-blue-600 tabular-nums whitespace-nowrap">
+            {event.time || '—'}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-gray-900 font-medium whitespace-pre-line leading-snug text-sm sm:text-base">{activityText}</div>
