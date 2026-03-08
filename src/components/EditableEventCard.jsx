@@ -160,7 +160,7 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
           </span>
         )}
         <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4 sm:items-baseline pr-16 sm:pr-20">
-          <div className="flex-shrink-0 text-xs sm:text-sm font-semibold text-blue-600 tabular-nums whitespace-nowrap">
+          <div className="flex-shrink-0 min-w-[4.5rem] sm:min-w-[7rem] text-xs sm:text-sm font-semibold text-blue-600 tabular-nums whitespace-nowrap">
             {event.time || '—'}
           </div>
           <div className="flex-1 min-w-0">
