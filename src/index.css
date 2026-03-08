@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* 深色模式：依 .dark class 切換（Tailwind v4 需在 CSS 定義） */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* 確保時間輸入使用 24 小時制 */
 input[type="time"] {
   font-variant-numeric: tabular-nums;
@@ -13,4 +16,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 /* 確保時間文字使用等寬字體，方便閱讀 */
 input[type="time"] {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* 列印時隱藏導航、按鈕，只保留行程內容 */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .print-break-before {
+    page-break-before: always;
+  }
 }

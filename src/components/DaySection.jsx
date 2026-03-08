@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import { ChevronDown, Trash2, Plus } from 'lucide-react';
+import { ChevronDown, Trash2, Plus, Copy } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -19,7 +19,7 @@ import { formatDate } from '../utils/dateTime';
 import SortableEventCard from './SortableEventCard';
 import EditableEventCard from './EditableEventCard';
 
-const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteDay, id, isEditMode }) => {
+const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteDay, onCopyDay, id, isEditMode, searchQuery, visibleIndices: visibleIndicesProp }) => {
   const [activeId, setActiveId] = useState(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -32,15 +32,19 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
     })
   );
 
-  const handleUpdateEvent = (eventIndex, updatedEvent) => {
+  const totalEvents = day.events.length;
+  const visibleIndices = visibleIndicesProp ?? (totalEvents > 0 ? day.events.map((_, i) => i) : []);
+  const isFiltered = visibleIndices.length < totalEvents && totalEvents > 0;
+
+  const handleUpdateEvent = (realIndex, updatedEvent) => {
     const newEvents = [...day.events];
-    newEvents[eventIndex] = updatedEvent;
+    newEvents[realIndex] = updatedEvent;
     onUpdateDay({ ...day, events: newEvents });
   };
 
-  const handleDeleteEvent = (eventIndex) => {
+  const handleDeleteEvent = (realIndex) => {
     if (window.confirm('確定要刪除這個行程嗎？')) {
-      const newEvents = day.events.filter((_, i) => i !== eventIndex);
+      const newEvents = day.events.filter((_, i) => i !== realIndex);
       onUpdateDay({ ...day, events: newEvents });
     }
   };
@@ -53,7 +57,8 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
       cost_twd: "",
       cost_jpy: "",
       link: "",
-      tag: ""
+      tag: "",
+      location: ""
     };
     onUpdateDay({ ...day, events: [...day.events, newEvent] });
   };
@@ -77,7 +82,7 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
 
   return (
     <div id={id} className="mb-8 scroll-mt-24 md:scroll-mt-8">
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 overflow-hidden">
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 dark:border-gray-700 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 md:p-6 text-white flex justify-between items-center sticky top-0 z-10 relative group/day-header">
           <div className="flex items-center gap-4">
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 text-center min-w-[3.5rem]">
@@ -86,10 +91,26 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
             </div>
             <div>
               <h2 className="text-lg md:text-xl font-bold">{formatDate(day.date)}</h2>
-              <p className="text-blue-100 text-sm opacity-90">{day.events.length} 個行程</p>
+              <p className="text-blue-100 text-sm opacity-90">
+                {visibleIndices.length} 個行程{isFiltered ? ' (已篩選)' : ''}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {onCopyDay && isEditMode && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopyDay(index);
+                }}
+                className="p-2 hover:bg-white/20 rounded-full opacity-80 hover:opacity-100 text-white/90 hover:text-white touch-manipulation"
+                title="複製此日"
+                type="button"
+                aria-label="複製此日"
+              >
+                <Copy size={20} />
+              </button>
+            )}
             {onDeleteDay && isEditMode && (
               <button
                 onClick={(e) => {
@@ -128,7 +149,7 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
             !isEditMode ? 'max-h-[10000px] opacity-100' : isActive ? 'max-h-[10000px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className={`p-4 md:p-6 bg-gray-50/50 ${isEditMode ? 'space-y-4' : 'space-y-2'}`}>
+          <div className={`p-4 md:p-6 bg-gray-50/50 dark:bg-gray-800/50 ${isEditMode ? 'space-y-4' : 'space-y-2'}`}>
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -136,17 +157,18 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={day.events.map((_, idx) => `event-${idx}`)}
+                items={visibleIndices.map((i) => `event-${i}`)}
                 strategy={verticalListSortingStrategy}
               >
-                {day.events.map((event, idx) => (
+                {visibleIndices.map((realIndex) => (
                   <SortableEventCard
-                    key={idx}
-                    index={idx}
-                    event={event}
-                    onUpdate={(updatedEvent) => handleUpdateEvent(idx, updatedEvent)}
-                    onDelete={() => handleDeleteEvent(idx)}
+                    key={realIndex}
+                    index={realIndex}
+                    event={day.events[realIndex]}
+                    onUpdate={(updatedEvent) => handleUpdateEvent(realIndex, updatedEvent)}
+                    onDelete={() => handleDeleteEvent(realIndex)}
                     isEditMode={isEditMode}
+                    searchQuery={searchQuery}
                   />
                 ))}
               </SortableContext>
@@ -158,16 +180,17 @@ const DaySection = memo(({ day, isActive, onClick, index, onUpdateDay, onDeleteD
                       onUpdate={() => {}}
                       onDelete={() => {}}
                       isEditMode={isEditMode}
+                      searchQuery={searchQuery}
                     />
                   </div>
                 ) : null}
               </DragOverlay>
             </DndContext>
 
-            {isEditMode && (
+            {isEditMode && !isFiltered && (
               <button
                 onClick={handleAddEvent}
-                className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 flex items-center justify-center gap-2 font-medium group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-gray-700/50 flex items-center justify-center gap-2 font-medium group disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!isEditMode}
               >
                 <div className="bg-gray-200 group-hover:bg-blue-100 p-1 rounded-full transition-colors">

@@ -3,7 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 import EditableEventCard from './EditableEventCard';
 
-const SortableEventCard = ({ event, index, onUpdate, onDelete, isEditMode }) => {
+const SortableEventCard = ({ event, index, onUpdate, onDelete, isEditMode, searchQuery }) => {
   const {
     attributes,
     listeners,
@@ -36,6 +36,7 @@ const SortableEventCard = ({ event, index, onUpdate, onDelete, isEditMode }) => 
         onUpdate={onUpdate}
         onDelete={onDelete}
         isEditMode={isEditMode}
+        searchQuery={searchQuery}
       />
     </div>
   );

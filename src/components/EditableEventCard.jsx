@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react';
-import { Clock, ExternalLink, Trash2, Plus, Link as LinkIcon } from 'lucide-react';
+import { Clock, ExternalLink, Trash2, Plus, Link as LinkIcon, MapPin } from 'lucide-react';
 
 const TAG_OPTIONS = [
   { value: '', label: '無' },
@@ -10,7 +10,21 @@ const TAG_OPTIONS = [
 import { formatTime } from '../utils/dateTime';
 import LinkPreview from './LinkPreview';
 
-const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }) => {
+function highlightText(text, query) {
+  if (!text || !query || !query.trim()) return text;
+  const q = query.trim();
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-amber-200 rounded px-0.5">{text.slice(idx, idx + q.length)}</mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
+const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true, searchQuery }) => {
   const [timeMode, setTimeMode] = useState('picker');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -138,8 +152,11 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
 
   // 瀏覽模式：精簡一覽，標註在右上角、有標註時牌卡底色變化
   if (!isEditMode) {
-    const activityText = event.activity || (event.activities && event.activities.filter(Boolean).join('\n')) || '—';
+    const rawActivity = event.activity || (event.activities && event.activities.filter(Boolean).join('\n')) || '—';
+    const activityText = searchQuery?.trim() ? highlightText(rawActivity, searchQuery) : rawActivity;
     const hasCost = (event.cost_jpy && String(event.cost_jpy).trim()) || (event.cost_twd && String(event.cost_twd).trim());
+    const location = (event.location || '').trim();
+    const mapsUrl = location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}` : null;
     const tagValue = event.tag || '';
     const tagLabel = TAG_OPTIONS.find(o => o.value === tagValue)?.label || '';
     const tagBadgeClass = {
@@ -148,10 +165,10 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
       tbc: 'bg-amber-500 text-white',
     }[tagValue] || '';
     const cardBgClass = {
-      optional: 'bg-gray-50/90 border-gray-200 hover:border-gray-300',
-      confirmed: 'bg-emerald-50/90 border-emerald-200 hover:border-emerald-300',
-      tbc: 'bg-amber-50/90 border-amber-200 hover:border-amber-300',
-    }[tagValue] || 'bg-white border-gray-100 hover:border-blue-100';
+      optional: 'bg-gray-50/90 dark:bg-gray-700/90 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500',
+      confirmed: 'bg-emerald-50/90 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800 hover:border-emerald-300 dark:hover:border-emerald-700',
+      tbc: 'bg-amber-50/90 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700',
+    }[tagValue] || 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-100 dark:hover:border-gray-600';
     return (
       <div className={`group relative rounded-xl border shadow-sm py-2.5 px-3 sm:py-3 sm:px-4 hover:shadow transition-colors ${cardBgClass}`}>
         {tagValue && (
@@ -160,13 +177,24 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
           </span>
         )}
         <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4 sm:items-baseline pr-16 sm:pr-20">
-          <div className="flex-shrink-0 min-w-[4.5rem] sm:min-w-[7rem] text-xs sm:text-sm font-semibold text-blue-600 tabular-nums whitespace-nowrap">
+          <div className="flex-shrink-0 min-w-[4.5rem] sm:min-w-[7rem] text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 tabular-nums whitespace-nowrap">
             {event.time || '—'}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-gray-900 font-medium whitespace-pre-line leading-snug text-sm sm:text-base">{activityText}</div>
+            <div className="text-gray-900 dark:text-gray-100 font-medium whitespace-pre-line leading-snug text-sm sm:text-base">{activityText}</div>
+            {mapsUrl && (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <MapPin size={12} />
+                開 Google 地圖
+              </a>
+            )}
             {hasCost && (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {event.cost_jpy && String(event.cost_jpy).trim() && (
                   <span>¥{String(event.cost_jpy).trim()}</span>
                 )}
@@ -187,7 +215,7 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
   }
 
   return (
-    <div className={`group bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-white/50 p-4 relative ${isEditMode ? 'pl-10' : 'pl-4'}`}>
+    <div className={`group bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-sm border border-white/50 dark:border-gray-700 p-4 relative ${isEditMode ? 'pl-10' : 'pl-4'}`}>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col lg:flex-row gap-3 items-start">
           <div className="w-full lg:w-80 xl:w-96 flex-shrink-0">
@@ -406,6 +434,30 @@ const EditableEventCard = memo(({ event, onUpdate, onDelete, isEditMode = true }
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-gray-100 mt-2">
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">地點（開地圖用）</label>
+          <div className="flex gap-2 items-center flex-wrap">
+            <input
+              type="text"
+              value={event.location || ''}
+              onChange={(e) => handleChange('location', e.target.value)}
+              placeholder="地址或地名，例如：東京鐵塔"
+              className="flex-1 min-w-[140px] px-3 py-1.5 bg-gray-50/50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+            {(event.location || '').trim() && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((event.location || '').trim())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100"
+              >
+                <MapPin size={14} />
+                開地圖
+              </a>
+            )}
           </div>
         </div>
 

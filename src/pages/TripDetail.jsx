@@ -7,9 +7,11 @@ import DaySection from '../components/DaySection';
 import NotesAndLinksSection from '../components/NotesAndLinksSection';
 import MobileHeader from '../components/MobileHeader';
 import Sidebar from '../components/Sidebar';
+import TripDetailSkeleton from '../components/TripDetailSkeleton';
 import { formatDate } from '../utils/dateTime';
 import { useAuth } from '../contexts/AuthContext';
 import { getTripById, updateTrip } from '../lib/tripsDb';
+import { saveTemplate } from '../lib/templates';
 
 function TripDetail() {
   const { tripId } = useParams();
@@ -216,6 +218,24 @@ function TripDetail() {
     ]);
   }, []);
 
+  const handleCopyDay = useCallback((dayIndex) => {
+    setItinerary(prev => {
+      const day = prev[dayIndex];
+      if (!day) return prev;
+      const copy = { ...day, date: day.date + ' (複製)', events: day.events.map(e => ({ ...e })) };
+      const next = [...prev];
+      next.splice(dayIndex + 1, 0, copy);
+      return next;
+    });
+    setActiveDayIndex(prev => new Set([...prev, dayIndex + 1]));
+  }, []);
+
+  const handleSaveAsTemplate = useCallback(() => {
+    const name = tripInfo?.name || '未命名行程';
+    saveTemplate({ name, data: itinerary, notes });
+    if (typeof window !== 'undefined') window.alert('已存為範本，可在首頁「從範本建立」使用。');
+  }, [tripInfo?.name, itinerary, notes]);
+
   const totalJpy = useMemo(() => {
     return itinerary.reduce((acc, day) => {
       return acc + day.events.reduce((sum, event) => {
@@ -234,15 +254,43 @@ function TripDetail() {
     }, 0);
   }, [itinerary]);
 
+  const dailyBudget = useMemo(() => {
+    return itinerary.map(day => ({
+      jpy: day.events.reduce((sum, event) => sum + (parseFloat(String(event.cost_jpy).replace(/[^0-9.]/g, '')) || 0), 0),
+      twd: day.events.reduce((sum, event) => sum + (parseFloat(String(event.cost_twd).replace(/[^0-9.]/g, '')) || 0), 0),
+    }));
+  }, [itinerary]);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [tagFilter, setTagFilter] = useState('');
+
+  const displayItinerary = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const hasTag = !!tagFilter;
+    const hasSearch = q.length > 0;
+
+    return itinerary
+      .map((day, originalIndex) => {
+        const events = Array.isArray(day.events) ? day.events : [];
+        const visibleIndices = events
+          .map((_, i) => i)
+          .filter((i) => {
+            const e = events[i];
+            if (hasTag && (e.tag || '') !== tagFilter) return false;
+            if (hasSearch) {
+              const act = (e.activity || (e.activities && e.activities.join(' ')) || '').toLowerCase();
+              const time = (e.time || '').toLowerCase();
+              if (!act.includes(q) && !time.includes(q)) return false;
+            }
+            return true;
+          });
+        return { day: { ...day, events }, originalIndex, visibleIndices };
+      })
+      .filter(({ visibleIndices }) => visibleIndices.length > 0);
+  }, [itinerary, tagFilter, searchQuery]);
+
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">載入中...</p>
-        </div>
-      </div>
-    );
+    return <TripDetailSkeleton />;
   }
 
   if (!tripInfo) {
@@ -270,16 +318,10 @@ function TripDetail() {
           </>
         )}
       </Helmet>
-      <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex flex-col md:flex-row overflow-hidden relative">
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-40"
-        style={{
-          backgroundImage: `radial-gradient(#cbd5e1 1px, transparent 1px), radial-gradient(#cbd5e1 1px, transparent 1px)`,
-          backgroundSize: '20px 20px',
-          backgroundPosition: '0 0, 10px 10px',
-          backgroundColor: '#f8fafc'
-        }}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 flex flex-col md:flex-row overflow-hidden relative">
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-40 bg-[#f8fafc] [background-image:radial-gradient(#cbd5e1_1px,transparent_1px),radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] dark:bg-gray-900 dark:opacity-30 dark:[background-image:radial-gradient(#374151_1px,transparent_1px),radial-gradient(#374151_1px,transparent_1px)]">
       </div>
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/50 via-transparent to-indigo-50/50"></div>
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/50 via-transparent to-indigo-50/50 dark:from-gray-900/50 dark:to-gray-900/50"></div>
 
       {/* 小畫面固定 Header */}
       <MobileHeader
@@ -297,6 +339,7 @@ function TripDetail() {
         activeDayIndex={activeDayIndex}
         totalJpy={totalJpy}
         totalTwd={totalTwd}
+        dailyBudget={dailyBudget}
         isEditMode={isEditMode}
         isSidebarOpen={isSidebarOpen}
         onToggleEditMode={toggleEditMode}
@@ -304,6 +347,7 @@ function TripDetail() {
         onScrollToDay={scrollToDay}
         onAddDay={handleAddDay}
         onDownload={handleDownload}
+        onSaveAsTemplate={handleSaveAsTemplate}
       />
 
       {/* 主要內容區域 */}
@@ -311,10 +355,10 @@ function TripDetail() {
         <div className="max-w-4xl mx-auto px-4 py-6 md:py-10 md:px-8">
           {itinerary.length === 0 ? (
             <div className="text-center py-20">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 shadow-lg border border-white/50 max-w-md mx-auto">
-                <MapPin size={64} className="mx-auto text-gray-300 mb-4" />
-                <h2 className="text-xl font-bold text-gray-700 mb-2">還沒有行程</h2>
-                <p className="text-gray-500 mb-6">開始建立你的第一個行程吧！</p>
+              <div className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-12 shadow-lg border border-white/50 dark:border-gray-700 max-w-md mx-auto">
+                <MapPin size={64} className="mx-auto text-gray-300 dark:text-gray-500 mb-4" />
+                <h2 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">還沒有行程</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">開始建立你的第一個行程吧！</p>
                 {isEditMode && (
                   <button
                     onClick={() => {
@@ -334,31 +378,56 @@ function TripDetail() {
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              {itinerary.map((day, index) => (
-                <DaySection
-                  key={index}
-                  id={`day-${index}`}
-                  index={index}
-                  day={day}
-                  isActive={activeDayIndex.has(index)}
-                  onClick={() => {
-                    setActiveDayIndex(prev => {
-                      const newSet = new Set(prev);
-                      if (newSet.has(index)) {
-                        newSet.delete(index);
-                      } else {
-                        newSet.add(index);
-                      }
-                      return newSet;
-                    });
-                  }}
-                  onUpdateDay={(updatedDay) => handleUpdateDay(index, updatedDay)}
-                  onDeleteDay={() => handleDeleteDay(index)}
-                  isEditMode={isEditMode}
+            <>
+              {/* 搜尋與篩選 */}
+              <div className="no-print flex flex-wrap gap-3 mb-6">
+                <input
+                  type="text"
+                  placeholder="搜尋行程..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 min-w-[140px] px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
-              ))}
-            </div>
+                <select
+                  value={tagFilter}
+                  onChange={(e) => setTagFilter(e.target.value)}
+                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                >
+                  <option value="">全部標註</option>
+                  <option value="optional">選做</option>
+                  <option value="confirmed">已預訂</option>
+                  <option value="tbc">待確認</option>
+                </select>
+              </div>
+              <div className="space-y-6">
+                {displayItinerary.map(({ day, originalIndex, visibleIndices }) => (
+                  <DaySection
+                    key={originalIndex}
+                    id={`day-${originalIndex}`}
+                    index={originalIndex}
+                    day={day}
+                    visibleIndices={visibleIndices}
+                    isActive={activeDayIndex.has(originalIndex)}
+                    onClick={() => {
+                      setActiveDayIndex(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(originalIndex)) {
+                          newSet.delete(originalIndex);
+                        } else {
+                          newSet.add(originalIndex);
+                        }
+                        return newSet;
+                      });
+                    }}
+                    onUpdateDay={(updatedDay) => handleUpdateDay(originalIndex, updatedDay)}
+                    onDeleteDay={() => handleDeleteDay(originalIndex)}
+                    onCopyDay={handleCopyDay}
+                    isEditMode={isEditMode}
+                    searchQuery={searchQuery}
+                  />
+                ))}
+              </div>
+            </>
           )}
 
           {/* 備註區域 - 移到最底部 */}
@@ -374,7 +443,7 @@ function TripDetail() {
       {showScrollTop && createPortal(
         <button
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 md:bottom-8 md:right-8 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 md:p-3 rounded-full shadow-2xl flex items-center justify-center touch-manipulation"
+          className="no-print fixed bottom-20 right-4 md:bottom-8 md:right-8 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 md:p-3 rounded-full shadow-2xl flex items-center justify-center touch-manipulation"
           title="回到頂部"
           style={{ 
             WebkitTapHighlightColor: 'transparent',

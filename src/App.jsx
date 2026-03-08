@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import OfflineBanner from './components/OfflineBanner';
 import HomePage from './pages/HomePage';
 import TripDetail from './pages/TripDetail';
 import LoginPage from './pages/LoginPage';
@@ -9,8 +11,10 @@ import LoginPage from './pages/LoginPage';
 function App() {
   return (
     <HelmetProvider>
-      <AuthProvider>
-        <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <OfflineBanner />
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -22,11 +26,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </HelmetProvider>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+    </ThemeProvider>
+  </HelmetProvider>
   );
 }
 

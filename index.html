@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="zh-TW">
   <head>
+    <script>
+      (function() {
+        var t = localStorage.getItem('trip-planner-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.classList.add(t);
+        else document.documentElement.classList.add('light');
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
