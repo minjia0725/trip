@@ -443,15 +443,11 @@ function TripDetail() {
       {showScrollTop && createPortal(
         <button
           onClick={scrollToTop}
-          className="no-print fixed bottom-20 right-4 md:bottom-8 md:right-8 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 md:p-3 rounded-full shadow-2xl flex items-center justify-center touch-manipulation"
+          className="no-print fixed bottom-20 right-8 md:bottom-8 md:right-12 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 md:p-3 rounded-full shadow-2xl flex items-center justify-center touch-manipulation z-[999999]"
           title="回到頂部"
           style={{ 
             WebkitTapHighlightColor: 'transparent',
             touchAction: 'manipulation',
-            zIndex: 999999,
-            position: 'fixed',
-            bottom: '5rem',
-            right: '1rem',
           }}
           aria-label="回到頂部"
         >

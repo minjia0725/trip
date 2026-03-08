@@ -55,7 +55,7 @@ const Sidebar = memo(({
   return (
     <>
       <aside className={`
-        no-print fixed inset-y-0 left-0 z-50 w-80 min-w-[280px] max-w-[90vw] md:max-w-none bg-white dark:bg-gray-800 shadow-2xl transform transition-transform duration-150 ease-in-out md:translate-x-0 md:static md:shadow-none md:border-r md:border-gray-200 dark:md:border-gray-700 md:flex md:flex-col md:h-screen md:sticky md:top-0 md:z-40 md:w-80
+        no-print fixed inset-y-0 left-0 z-50 w-80 min-w-[280px] max-w-[90vw] md:max-w-none bg-white dark:bg-gray-800 shadow-2xl transform transition-transform duration-150 ease-in-out md:translate-x-0 md:static md:shadow-none md:border-r md:border-gray-200 dark:md:border-gray-700 flex flex-col h-screen overflow-y-auto md:overflow-hidden md:h-screen md:sticky md:top-0 md:z-40 md:w-80
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="p-5 md:p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-start bg-gradient-to-br from-blue-600 to-indigo-700 text-white md:bg-none md:text-gray-900 md:from-transparent md:to-transparent md:dark:bg-gray-800 md:dark:from-gray-800 md:dark:to-gray-800 md:dark:text-gray-100 relative">
@@ -111,7 +111,7 @@ const Sidebar = memo(({
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4 md:p-5 space-y-2 min-h-0">
+        <nav className="flex-none md:flex-1 overflow-y-auto md:min-h-0 p-4 md:p-5 space-y-2">
           <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3">每日行程</div>
           {itinerary.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
