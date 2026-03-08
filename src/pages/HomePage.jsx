@@ -161,45 +161,45 @@ function HomePage() {
         <meta property="og:description" content="專業的行程規劃工具，幫助您輕鬆管理多個旅程、預算追蹤和活動安排。" />
         <meta property="og:type" content="website" />
       </Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Header */}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-x-hidden">
+      {/* Header：小螢幕可換行、縮小間距與字體 */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <MapPin className="text-blue-600" size={28} />
-              旅程規劃器
+        <div className="max-w-6xl mx-auto px-3 py-3 sm:px-4 sm:py-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <MapPin className="text-blue-600 w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0" />
+              <span className="whitespace-nowrap">旅程規劃器</span>
             </h1>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end min-w-0">
               {isAuthEnabled && (
                 user ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600 truncate max-w-[140px]" title={user.email}>{user.email}</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[90px] sm:max-w-[140px]" title={user.email}>{user.email}</span>
                     <button
                       type="button"
                       onClick={() => signOut()}
-                      className="flex items-center gap-1.5 px-3 py-2 text-gray-600 hover:text-red-600 text-sm font-medium"
+                      className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 text-gray-600 hover:text-red-600 text-xs sm:text-sm font-medium shrink-0"
                     >
-                      <LogOut size={18} />
-                      登出
+                      <LogOut className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                      <span className="hidden sm:inline">登出</span>
                     </button>
                   </div>
                 ) : (
                   <Link
                     to="/login"
-                    className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:text-blue-700 font-medium"
+                    className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 text-blue-600 hover:text-blue-700 font-medium text-sm shrink-0"
                   >
-                    <LogIn size={18} />
+                    <LogIn className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                     登入
                   </Link>
                 )
               )}
               <button
                 onClick={handleCreateTrip}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 font-medium"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 text-sm sm:text-base font-medium shrink-0"
               >
-                <Plus size={20} />
-                新增旅程
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="whitespace-nowrap">新增旅程</span>
               </button>
             </div>
           </div>
@@ -207,7 +207,7 @@ function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-3 py-5 sm:px-4 sm:py-8">
         {tripsLoading ? (
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -261,38 +261,38 @@ function HomePage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {trips.map((trip) => (
               <Link
                 key={trip.id}
                 to={`/trip/${trip.id}`}
-                className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/50 overflow-hidden hover:-translate-y-1"
+                className="group bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-white/50 overflow-hidden hover:-translate-y-1 min-w-0"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors truncate">
                         {trip.name}
                       </h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Calendar size={14} />
-                        <span>{trip.date}</span>
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
+                        <Calendar size={14} className="flex-shrink-0" />
+                        <span className="truncate">{trip.date}</span>
                       </div>
                     </div>
                     <button
                       onClick={(e) => handleDeleteTrip(trip.id, e)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                       title="刪除旅程"
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="text-sm text-gray-600">
+                  <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-100 gap-2">
+                    <div className="text-xs sm:text-sm text-gray-600">
                       <span className="font-medium">{trip.days}</span> 天行程
                     </div>
-                    <div className="flex items-center gap-2 text-blue-600 font-medium text-sm group-hover:gap-3 transition-all">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-blue-600 font-medium text-xs sm:text-sm group-hover:gap-3 transition-all shrink-0">
                       查看詳情
                       <ArrowRight size={16} />
                     </div>
@@ -304,12 +304,12 @@ function HomePage() {
             {/* 新增旅程卡片 */}
             <button
               onClick={handleCreateTrip}
-              className="group bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 p-6 flex flex-col items-center justify-center min-h-[200px] text-gray-500 hover:text-blue-600"
+              className="group bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 p-4 sm:p-6 flex flex-col items-center justify-center min-h-[160px] sm:min-h-[200px] text-gray-500 hover:text-blue-600"
             >
-              <div className="bg-gray-100 group-hover:bg-blue-100 p-4 rounded-full mb-3 transition-colors">
-                <Plus size={32} />
+              <div className="bg-gray-100 group-hover:bg-blue-100 p-3 sm:p-4 rounded-full mb-2 sm:mb-3 transition-colors">
+                <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
-              <span className="font-medium text-lg">新增旅程</span>
+              <span className="font-medium text-base sm:text-lg">新增旅程</span>
             </button>
           </div>
         )}

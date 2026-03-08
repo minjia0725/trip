@@ -12,9 +12,9 @@ cd "c:\Users\aa813\OneDrive\桌面\東京\trip"
 git init
 
 # 3. 設定遠端（第一次）
-git remote add origin git@github.com:minjia0725/trip.git
-# 若已經有 origin 但網址不對，可改為：
-# git remote set-url origin git@github.com:minjia0725/trip.git
+git remote add origin https://github.com/minjia0725/trip.git
+# 若用 SSH：git remote add origin git@github.com:minjia0725/trip.git
+# 若已經有 origin 但網址不對：git remote set-url origin https://github.com/minjia0725/trip.git
 
 # 4. 加入所有檔案（.env 會被 .gitignore 排除，不會被加入）
 git add .
