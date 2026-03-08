@@ -97,7 +97,13 @@ function HomePage() {
     }
   };
 
+  const canCreateTrip = !isAuthEnabled || !!user;
+
   const handleCreateTrip = async () => {
+    if (!canCreateTrip) {
+      navigate('/login');
+      return;
+    }
     const tripName = window.prompt('請輸入旅程名稱：');
     if (!tripName?.trim()) return;
     const name = tripName.trim();
@@ -194,13 +200,15 @@ function HomePage() {
                   </Link>
                 )
               )}
-              <button
-                onClick={handleCreateTrip}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 text-sm sm:text-base font-medium shrink-0"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="whitespace-nowrap">新增旅程</span>
-              </button>
+              {canCreateTrip && (
+                <button
+                  onClick={handleCreateTrip}
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 text-sm sm:text-base font-medium shrink-0"
+                >
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="whitespace-nowrap">新增旅程</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -248,14 +256,26 @@ function HomePage() {
                 <>
                   <MapPin size={64} className="mx-auto text-gray-300 mb-4" />
                   <h2 className="text-xl font-bold text-gray-700 mb-2">還沒有任何旅程</h2>
-                  <p className="text-gray-500 mb-6">開始建立你的第一個旅程吧！</p>
-                  <button
-                    onClick={handleCreateTrip}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
-                  >
-                    <Plus size={20} />
-                    建立旅程
-                  </button>
+                  <p className="text-gray-500 mb-6">
+                    {canCreateTrip ? '開始建立你的第一個旅程吧！' : '請先登入以新增旅程。'}
+                  </p>
+                  {canCreateTrip ? (
+                    <button
+                      onClick={handleCreateTrip}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
+                    >
+                      <Plus size={20} />
+                      建立旅程
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
+                    >
+                      <LogIn size={20} />
+                      登入
+                    </Link>
+                  )}
                 </>
               )}
             </div>
@@ -301,16 +321,18 @@ function HomePage() {
               </Link>
             ))}
 
-            {/* 新增旅程卡片 */}
-            <button
-              onClick={handleCreateTrip}
-              className="group bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 p-4 sm:p-6 flex flex-col items-center justify-center min-h-[160px] sm:min-h-[200px] text-gray-500 hover:text-blue-600"
-            >
-              <div className="bg-gray-100 group-hover:bg-blue-100 p-3 sm:p-4 rounded-full mb-2 sm:mb-3 transition-colors">
-                <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
-              </div>
-              <span className="font-medium text-base sm:text-lg">新增旅程</span>
-            </button>
+            {/* 新增旅程卡片：有啟用登入時僅登入後顯示 */}
+            {canCreateTrip && (
+              <button
+                onClick={handleCreateTrip}
+                className="group bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 p-4 sm:p-6 flex flex-col items-center justify-center min-h-[160px] sm:min-h-[200px] text-gray-500 hover:text-blue-600"
+              >
+                <div className="bg-gray-100 group-hover:bg-blue-100 p-3 sm:p-4 rounded-full mb-2 sm:mb-3 transition-colors">
+                  <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
+                </div>
+                <span className="font-medium text-base sm:text-lg">新增旅程</span>
+              </button>
+            )}
           </div>
         )}
       </main>
